@@ -20,14 +20,14 @@ const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { ALPN_ENABLED } = require('constants');
 
 var datas = [];
-let totalfaltas = 0 ;
+let totalfaults = 0 ;
 
 
 
 
 app.get('/', async (request, response) => {
 
-    await  carregar();
+    await  loading();
    
 
     return response.render("index.html",{datas});
@@ -52,28 +52,28 @@ app.get('/tarefa', async (request, response) => {
     await sheet.loadCells('A2:H27'); // loads a range of cells
 
     let total = 26;
-    totalfaltas = Number(sheet.getCell(1, 0).value.split(":")[1]);
+    totalfaults = Number(sheet.getCell(1, 0).value.split(":")[1]);
     for (i = 3; i <= total; i++) {
 
 
-        let cellSituacao = sheet.getCell(i, 6);
+        let cellSituation = sheet.getCell(i, 6);
         let cellFinal = sheet.getCell(i, 7);
-        let faltas = sheet.getCell(i, 2).value;
+        let faults = sheet.getCell(i, 2).value;
         let p1 = sheet.getCell(i, 3).value;
         let p2 = sheet.getCell(i, 4).value;
         let p3 = sheet.getCell(i, 5).value;
 
 
 
-        cellSituacao.value = situacao(p1, p2, p3, faltas)
-        cellFinal.value = notaFinal(p1, p2, p3, faltas,);
+        cellSituation.value = situation(p1, p2, p3, faults)
+        cellFinal.value = gradeFinal(p1, p2, p3, faults,);
         
         await sheet.saveUpdatedCells();
     }
 
    
 
-    await carregar()
+    await loading()
 
    
         return response.render("index.html",{datas});
@@ -83,7 +83,7 @@ app.get('/tarefa', async (request, response) => {
 
 });
 
-async function  carregar(){
+async function  loading(){
     const doc = new GoogleSpreadsheet(docId);
 
     // Initialize Auth - see more available options at https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication
@@ -99,11 +99,11 @@ async function  carregar(){
   
 
     const rows = await sheet.getRows(); // can pass in { limit, offset }
-    const totalLinha = rows.length 
+    const totalLine = rows.length 
 
     datas = [];
 
-     for( i = 3 ; i <= totalLinha ; i ++ ){
+     for( i = 3 ; i <= totalLine ; i ++ ){
      
         datas.push({"matricula":sheet.getCell(i, 0).value,
         "nome":sheet.getCell(i, 1).value,
@@ -117,17 +117,17 @@ async function  carregar(){
 }
 
 
-  function situacao(p1, p2, p3, faltas) {
+  function situation(p1, p2, p3, faults) {
    
-    if (faltas > (totalfaltas / 4)) {
+    if (faults > (totalfaults / 4)) {
         return "Reprovado por falta";
     }
 
-    let media = (p1 + p2 + p3) / 3;
+    let average = (p1 + p2 + p3) / 3;
 
-    if (media >= 70) {
+    if (average >= 70) {
         return "Aprovado"
-    } else if (media <= 50 && media < 70) {
+    } else if (average <= 50 && average < 70) {
         return "Prova final"
     } else {
         return "Reprovado por Nota"
@@ -135,18 +135,18 @@ async function  carregar(){
 
 }
 
-function notaFinal (p1, p2, p3, faltas){
+function gradeFinal (p1, p2, p3, faults){
     
-    if (faltas > (totalfaltas / 4)) {
+    if (faults > (totalfaults / 4)) {
         return "";
     } 
 
-    let media = (p1 + p2 + p3) / 3;
+    let average = (p1 + p2 + p3) / 3;
 
-    if(media >= 50 && media < 70 ){
-       let  nota =  (70 - media );
-        return  Math.round( media + ( nota * 2)) ;
-    } else if (media < 50){
+    if(average >= 50 && average < 70 ){
+       let  grade =  (70 - average );
+        return  Math.round( average + ( grade * 2)) ;
+    } else if (average < 50){
         return " ";
     }else{
         return 0;
